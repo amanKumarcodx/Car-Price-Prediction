@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head xmlns="http://www.w3.org/1999/xhtml">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Price Predictor</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
+    
+    <!-- Google Fonts - Distinctive Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+
+</head>
+<body>
+
+<!-- Animated Background Particles -->
+<div class="bg-animation">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+</div>
+
+<div class="container">
+    <!-- Header Section with Icon -->
+    <div class="row">
+        <div class="col-12 text-center header-section">
+            <div class="car-icon-wrapper">
+                <i class="fas fa-car-side"></i>
+            </div>
+            <h1 class="main-title">Car Price Predictor</h1>
+            <p class="subtitle">AI-Powered Valuation Engine</p>
+            <div class="title-underline"></div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="predictor-card">
+                <div class="card-glow"></div>
+                
+                <div class="card-header-custom">
+                    <h5 class="card-title-custom">
+                        <i class="fas fa-calculator"></i>
+                        Enter Vehicle Details
+                    </h5>
+                    <p class="card-subtitle-custom">Fill in the information below to get an instant price estimate</p>
+                </div>
+                
+                <div class="card-body-custom">
+                    <form method="post" accept-charset="utf-8" name="Modelform">
+                        
+                        <!-- Company Selection -->
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">
+                                <i class="fas fa-industry"></i>
+                                Manufacturer
+                            </label>
+                            <div class="select-wrapper">
+                                <select class="form-control-custom" id="company" name="company" required="1"
+                                        onchange="load_car_models(this.id,'car_models')">
+                                    {% for company in companies %}
+                                    <option value="{{ company }}">{{ company }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                        </div>
+
+                        <!-- Model Selection -->
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">
+                                <i class="fas fa-car"></i>
+                                Model
+                            </label>
+                            <div class="select-wrapper">
+                                <select class="form-control-custom" id="car_models" name="car_models" required="1">
+                                    <option value="">Select a manufacturer first</option>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                        </div>
+
+                        <!-- Year Selection -->
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">
+                                <i class="fas fa-calendar-alt"></i>
+                                Year of Purchase
+                            </label>
+                            <div class="select-wrapper">
+                                <select class="form-control-custom" id="year" name="year" required="1">
+                                    {% for year in years %}
+                                    <option value="{{ year }}">{{ year }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                        </div>
+
+                        <!-- Fuel Type Selection -->
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">
+                                <i class="fas fa-gas-pump"></i>
+                                Fuel Type
+                            </label>
+                            <div class="select-wrapper">
+                                <select class="form-control-custom" id="fuel_type" name="fuel_type" required="1">
+                                    {% for fuel in fuel_types %}
+                                    <option value="{{ fuel }}">{{ fuel }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                        </div>
+
+                        <!-- Kilometers Driven -->
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Kilometers Driven
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" class="form-control-custom" id="kilo_driven" name="kilo_driven"
+                                       placeholder="Enter kilometers driven" required="1" min="0" step="1">
+                                <span class="input-unit">km</span>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-group-custom">
+                            <button type="button" class="btn-predict" onclick="send_data()">
+                                <span class="btn-text">
+                                    <i class="fas fa-chart-line"></i>
+                                    Predict Price
+                                </span>
+                                <span class="btn-loader">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Analyzing...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Prediction Result -->
+                    <div class="prediction-result" id="prediction-container" style="display: none;">
+                        <div class="result-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="result-content">
+                            <p class="result-label">Estimated Value</p>
+                            <h2 class="result-price" id="prediction"></h2>
+                        </div>
+                        <div class="result-sparkle"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Cards -->
+            <div class="row mt-5">
+                <div class="col-md-4">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h6>AI Powered</h6>
+                        <p>Machine learning algorithm trained on thousands of car sales</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h6>Instant Results</h6>
+                        <p>Get accurate price predictions in seconds</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h6>Market Data</h6>
+                        <p>Based on real-time market analysis and trends</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function load_car_models(company_id,car_model_id)
+    {
+        var company=document.getElementById(company_id);
+        var car_model= document.getElementById(car_model_id);
+        console.log(company.value);
+        car_model.value="";
+        car_model.innerHTML="<option value=''>Loading models...</option>";
+        
+        // Add loading animation
+        car_model.classList.add('loading');
+        
+        setTimeout(function() {
+            car_model.innerHTML="";
+            {% for company in companies %}
+                if( company.value == "{{ company }}")
+                {
+                    {% for model in car_models %}
+                        {% if company in model %}
+                            var newOption= document.createElement("option");
+                            newOption.value="{{ model }}";
+                            newOption.innerHTML="{{ model }}";
+                            car_model.options.add(newOption);
+                        {% endif %}
+                    {% endfor %}
+                }
+            {% endfor %}
+            
+            if(car_model.options.length === 0) {
+                car_model.innerHTML="<option value=''>No models available</option>";
+            }
+            
+            car_model.classList.remove('loading');
+        }, 300);
+    }
+
+    function form_handler(event) {
+        event.preventDefault();
+    }
+    
+    function send_data()
+    {
+        document.querySelector('form').addEventListener("submit",form_handler);
+
+        var fd=new FormData(document.querySelector('form'));
+        var xhr= new XMLHttpRequest({mozSystem: true});
+
+        // Show loading state
+        var btn = document.querySelector('.btn-predict');
+        btn.classList.add('loading');
+        
+        // Hide previous result
+        document.getElementById('prediction-container').style.display = 'none';
+
+        xhr.open('POST','/predict',true);
+        
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                // Remove loading state
+                btn.classList.remove('loading');
+                
+                // Show result with animation
+                var resultContainer = document.getElementById('prediction-container');
+                var predictionElement = document.getElementById('prediction');
+                
+                predictionElement.innerHTML = "₹" + xhr.responseText;
+                resultContainer.style.display = 'block';
+                
+                // Trigger animation
+                setTimeout(function() {
+                    resultContainer.classList.add('show');
+                }, 10);
+                
+                // Scroll to result
+                resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        };
+
+        xhr.onload= function(){};
+        xhr.send(fd);
+    }
+    
+    // Add form field animations on focus
+    document.addEventListener('DOMContentLoaded', function() {
+        var formInputs = document.querySelectorAll('.form-control-custom');
+        
+        formInputs.forEach(function(input) {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+    });
+</script>
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+</body>
+</html>
